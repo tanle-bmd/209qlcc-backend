@@ -15,6 +15,7 @@ import { Invoice } from "./Invoice";
 import { ChatCustomer } from "./ChatCustomer";
 import { FormStopContract } from "./FormStopContract";
 import { FormTransferSoon } from "./FormTransferSoon";
+import { CustomerNotification } from "./CustomerNotification";
 
 export enum GenderType {
     Male = 'MALE',
@@ -57,10 +58,6 @@ export class Customer extends CoreEntity {
     @Property()
     avatar: string;
 
-    @Column({ nullable: true })
-    @Property()
-    expoToken: string;
-
     @Column({ default: false })
     @Property()
     isBlock: boolean
@@ -84,6 +81,14 @@ export class Customer extends CoreEntity {
     @Column({ default: 0 })
     @Property()
     messagePending: number
+
+    @Column({ default: '' })
+    @Property()
+    fcmToken: string
+
+    @Column({ default: '' })
+    @Property()
+    resetCode: string
 
 
     // RELATIONS
@@ -117,6 +122,9 @@ export class Customer extends CoreEntity {
 
     @OneToMany(type => FormTransferSoon, formTransferSoons => formTransferSoons.customer)
     formTransferSoons: FormTransferSoon[];
+
+    @OneToMany(type => CustomerNotification, customerNotifications => customerNotifications.customer)
+    customerNotifications: CustomerNotification[];
 
 
     // METHODS

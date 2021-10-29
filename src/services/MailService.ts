@@ -24,7 +24,7 @@ export class MailService {
         let template = this.getFullTemplate()
         template = template.replace(/{{href}}/g, config.HOST);
         template = template.replace(/{{title}}/g, 'THAY ĐỔI MẬT KHẨU');
-        const body = this.generateRow(`<h3>Mật khẩu mới để đăng nhập vào số điện thoại ${customer.phone} là: ${password}</h3>`)
+        const body = this.generateRow(`<h3>Mật khẩu mới để đăng nhập vào email ${customer.email} là: ${password}</h3>`)
         template = template.replace(/{{body}}/g, body);
         return template
     }
@@ -33,7 +33,7 @@ export class MailService {
         let template = this.getFullTemplate()
         template = template.replace(/{{href}}/g, config.HOST);
         template = template.replace(/{{title}}/g, 'YÊU CẦU QUÊN MẬT KHẨU');
-        const body = this.generateRow(`<h3>Vui lòng không chia sẽ mã này với bất kì ai. Đây là mã reset mật khẩu của bạn: ${token}</h3>`)
+        const body = this.generateRow(`<h3>Vui lòng không chia sẽ mã này với bất kì ai, dùng mã này để thay đổi mật khẩu: ${token}</h3>`)
         template = template.replace(/{{body}}/g, body);
         return template
     }

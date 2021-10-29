@@ -32,7 +32,8 @@ export class CustomerNotificationController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        let where = `customerNotification.isDeleted = false `
+        let where = `customerNotification.isDeleted = false 
+        AND (customer.id = ${req.customer.id} OR customer.id IS NULL)`
 
         if (buildingId) {
             where += ` AND building.id = ${buildingId}`
@@ -40,6 +41,7 @@ export class CustomerNotificationController {
 
         const [customerNotifications, total] = await CustomerNotification.createQueryBuilder('customerNotification')
             .leftJoinAndSelect('customerNotification.building', 'building')
+            .leftJoinAndSelect('customerNotification.customer', 'customer')
             .where(where)
             .skip((page - 1) * limit)
             .take(limit)

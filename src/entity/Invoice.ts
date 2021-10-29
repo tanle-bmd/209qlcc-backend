@@ -81,7 +81,9 @@ export class Invoice extends CoreEntity {
     }
 
     public async assignApartment(apartmentId: number) {
-        const apartment = await Apartment.findOneOrThrowId(apartmentId, null, '')
+        const apartment = await Apartment.findOneOrThrowId(apartmentId, {
+            relations: ['customer'],
+        })
         this.apartment = apartment
     }
 

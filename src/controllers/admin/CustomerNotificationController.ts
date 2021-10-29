@@ -7,13 +7,17 @@ import Joi from '@hapi/joi';
 // IMPORT CUSTOM
 import { VerificationJWT } from '../../middleware/auth/VerificationJWT';
 import { Validator } from '../../middleware/validator/Validator';
-import { CustomerNotification } from '../../entity/CustomerNotification';
+import { CustomerNotification, EventCustomerNotification } from '../../entity/CustomerNotification';
+import { Firebase, MessageSend } from '../../util/firebase';
+import { CustomerNotificationService } from '../../services/CustomerNotificationService';
 
 
 @Controller("/admin/customerNotification")
 @Docs("docs_admin")
 export class CustomerNotificationController {
-    constructor() { }
+    constructor(
+        private customerNotificationService: CustomerNotificationService,
+    ) { }
 
 
     // =====================GET LIST=====================
@@ -32,7 +36,8 @@ export class CustomerNotificationController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        let where = `customerNotification.title LIKE :search AND customerNotification.isDeleted = false `
+        let where = `customerNotification.title LIKE :search 
+        AND customerNotification.isDeleted = false `
 
         if (buildingId) {
             where += ` AND building.id = ${buildingId}`
@@ -40,6 +45,7 @@ export class CustomerNotificationController {
 
         const [customerNotifications, total] = await CustomerNotification.createQueryBuilder('customerNotification')
             .leftJoinAndSelect('customerNotification.building', 'building')
+            .leftJoinAndSelect('customerNotification.customer', 'customer')
             .where(where, { search: `%${search}%` })
             .skip((page - 1) * limit)
             .take(limit)
@@ -66,6 +72,10 @@ export class CustomerNotificationController {
     ) {
         if (buildingId) await customerNotification.assignBuilding(buildingId)
         await customerNotification.save()
+
+        // Send notification
+        this.customerNotificationService.sendNotificationToBuilding(buildingId, customerNotification)
+
         return res.sendOK(customerNotification)
     }
 

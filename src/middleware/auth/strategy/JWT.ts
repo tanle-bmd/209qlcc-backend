@@ -98,12 +98,11 @@ export default class JWT implements AuthStrategy {
         const { token } = req.headers
 
         const staffId = this.getAuthId(token, AuthType.Staff);
-        console.log('staffId:', staffId)
+
         const staff = await Staff.findOneOrThrowId(staffId, {
             where: { isDeleted: false },
             relations: ['role']
         }, "Tài khoản");
-        console.log('staff:', staff)
 
         if (staff.isBlock) {
             throw new Unauthorized("Tài khoản đã bị khoá!")

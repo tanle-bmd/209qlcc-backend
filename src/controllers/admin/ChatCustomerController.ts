@@ -12,6 +12,8 @@ import { ChatCustomer } from '../../entity/ChatCustomer';
 import { Customer } from '../../entity/Customer';
 import { paginate } from '../../util/helper';
 import { ChatCustomerService } from '../../services/ChatCustomerService';
+import { EventCustomerNotification } from '../../entity/CustomerNotification';
+import { Firebase, MessageSend } from '../../util/firebase';
 
 
 @Controller("/admin/chatCustomer")
@@ -134,12 +136,13 @@ export class ChatCustomerController {
     ) {
         const customer = await Customer.findOneOrThrowId(customerId, null, '')
         const chat = await this.chatCustomerService.createChatSenderAdmin(customer, content, req.staff)
-        // const message: ExpoMessage = {
-        //     title: `Tin nhắn mới`,
-        //     body: `Admin vừa nhắn tin cho bạn.`,
-        //     data: { chat, type: PushNotificationType.ChatCustomer }
-        // }
-        // this.expoTokenService.sendNotification(customer.expoToken, message, APNTopicType.School)
+        const message: MessageSend = {
+            title: `Tin nhắn mới`,
+            body: `Nhân viên vừa nhắn tin cho bạn.`,
+            data: { type: EventCustomerNotification.ChatCustomer }
+        }
+        await Firebase.send({ message, tokens: [customer.fcmToken] })
+
         return res.sendOK(chat)
     }
 

@@ -10,12 +10,15 @@ import { Validator } from '../../middleware/validator/Validator';
 import { Invoice } from '../../entity/Invoice';
 import { InvoiceDetail } from '../../entity/InvoiceDetail';
 import { getFromToDate } from '../../util/helper';
+import { CustomerNotificationService } from '../../services/CustomerNotificationService';
 
 
 @Controller("/admin/invoice")
 @Docs("docs_admin")
 export class InvoiceController {
-    constructor() { }
+    constructor(
+        private customerNotificationService: CustomerNotificationService,
+    ) { }
 
 
     // =====================GET LIST=====================
@@ -100,6 +103,8 @@ export class InvoiceController {
         }
 
         await invoice.save()
+
+        this.customerNotificationService.sendInvoice(invoice)
 
         return res.sendOK(invoice)
     }

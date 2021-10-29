@@ -41,7 +41,7 @@ export class StaffController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        let where = `staff.name LIKE :search`
+        let where = `CONCAT(staff.name, ' ', staff.username , ' ', staff.phone , ' ', staff.email) LIKE :search`
 
         if (roleId) {
             where += ` AND role.id = ${roleId}`

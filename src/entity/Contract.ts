@@ -77,6 +77,18 @@ export class Contract extends CoreEntity {
     @Property()
     signStaffPage: number
 
+    @Column({ default: 0 })
+    @Property()
+    signCustomerX: number
+
+    @Column({ default: 0 })
+    @Property()
+    signCustomerY: number
+
+    @Column({ default: 0 })
+    @Property()
+    signCustomerPage: number
+
     @Column({ default: '' })
     @Property()
     code: string

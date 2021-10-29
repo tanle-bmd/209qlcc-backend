@@ -39,12 +39,14 @@ export class AuthController {
         @HeaderParams("version") version: string,
         @BodyParams('email') email: string,
         @BodyParams('password') password: string,
-        @BodyParams('expoToken') expoToken: string,
+        @BodyParams('fcmToken') fcmToken: string,
         @Res() res: Response
     ) {
         const customer = await this.customerService.login(email, password);
-        customer.expoToken = expoToken
-        await customer.save()
+        if (fcmToken) {
+            customer.fcmToken = fcmToken
+            await customer.save()
+        }
         const token = JWT.sign({ id: customer.id, type: AuthType.Customer });
 
         return res.sendOK({ token })
@@ -57,6 +59,7 @@ export class AuthController {
     async getInfo(
         @HeaderParams("version") version: string,
         @HeaderParams("token") token: string,
+        @HeaderParams("fcmToken") fcmToken: string,
         @Req() req: Request,
         @Res() res: Response,
     ) {
@@ -66,6 +69,11 @@ export class AuthController {
             .leftJoinAndSelect('apartments.building', 'building')
             .where(where)
             .getOne()
+
+        if (fcmToken) {
+            customer.fcmToken = fcmToken
+            await customer.save()
+        }
 
         return res.sendOK(customer)
     }
@@ -137,8 +145,11 @@ export class AuthController {
             return res.sendClientError('Email không tồn tại')
         }
 
-        const token = JWT.sign({ id: customer.id, type: AuthType.Customer, ia: getCurrentTimeInt() })
-        this.mailService.sendMailLinkReset(token, customer)
+        const resetCode = randomString(6)
+        customer.resetCode = resetCode
+        await customer.save()
+
+        this.mailService.sendMailLinkReset(resetCode, customer)
 
         return res.sendOK({}, 'Vui lòng kiểm tra email và truy cập vào đường link xác nhận.')
     }
@@ -147,31 +158,26 @@ export class AuthController {
     // =====================CONFIRM FORGOT=====================
     @Post('/password/forgot/confirm')
     @Validator({
-        token: Joi.required(),
+        resetCode: Joi.required(),
     })
     async reForgot(
         @HeaderParams("version") version: string,
-        @BodyParams("token") token: string,
+        @BodyParams("resetCode") resetCode: string,
+        @BodyParams('newPassword') newPassword: string,
         @Req() req: Request,
         @Res() res: Response,
     ) {
-        const customerId = new JWT().getAuthId(token, AuthType.Customer)
 
-        const customer = await Customer.findOne({ where: { id: customerId } })
+        const customer = await Customer.findOne({ where: { resetCode } })
         if (!customer) {
-            return res.sendClientError("Tài khoản không tồn tại")
+            return res.sendClientError("Mã dùng để thay đổi mật khẩu")
         }
 
-        const ia = JWT.getIa(token)
-        if (ia < customer.updatedAt) {
-            return res.sendClientError("Yêu cầu đã hết hạn. Vui lòng gửi yêu cầu khác.")
-        }
-
-        const newPassword = randomString(6)
         customer.password = await Password.hash(newPassword)
+        customer.resetCode = ''
         await customer.save()
 
-        this.mailService.sendMailReset(newPassword, customer)
+        // this.mailService.sendMailReset(newPassword, customer)
 
         return res.sendOK(customer)
     }

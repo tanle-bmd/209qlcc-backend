@@ -15,6 +15,7 @@ import { FormRepair } from "./FormRepair";
 import { FormService } from "./FormService";
 import { ChatCustomer } from "./ChatCustomer";
 import { FormStaffSupport } from "./FormStaffSupport";
+import { ChatStaff } from "./ChatStaff";
 
 @Entity(addPrefix("staff"))
 export class Staff extends CoreEntity {
@@ -87,11 +88,16 @@ export class Staff extends CoreEntity {
     @OneToMany(type => FormStaffSupport, formStaffSupports => formStaffSupports.staff)
     formStaffSupports: FormStaffSupport[];
 
+    @OneToMany(type => ChatStaff, chatStaffs => chatStaffs.senderStaff)
+    senderChats: ChatStaff[];
+
+    @OneToMany(type => ChatStaff, chatStaffs => chatStaffs.receiverStaff)
+    receiverChats: ChatStaff[];
+
 
     // METHODS
 
     public async assignBuilding(buildingIds: number[]) {
-        console.log('buildingIds:', buildingIds)
         let where = `building.isDeleted = false
         AND building.id IN (:...buildingIds)`
         const buildings = await Building.createQueryBuilder('building')
@@ -99,7 +105,6 @@ export class Staff extends CoreEntity {
             .orderBy('building.id', 'DESC')
             .getMany()
 
-        console.log('buildings:', buildings)
         this.buildings = buildings
     }
 

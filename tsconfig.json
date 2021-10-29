@@ -15,7 +15,7 @@
         "types": [
             "reflect-metadata"
         ],
-        "declaration": false
+        "declaration": false,
     },
     "include": [
         "src/**/*"

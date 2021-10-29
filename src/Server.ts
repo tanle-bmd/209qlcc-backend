@@ -116,6 +116,10 @@ const OPTION: any = {
         {
             path: "/docs_customer",
             doc: "docs_customer"
+        },
+        {
+            path: "/docs_public",
+            doc: "docs_public"
         }
     ],
     typeorm: [

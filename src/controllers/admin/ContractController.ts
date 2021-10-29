@@ -10,12 +10,17 @@ import { Validator } from '../../middleware/validator/Validator';
 import { Contract, ContractStatus } from '../../entity/Contract';
 import { MultipartFile } from '@tsed/multipartfiles';
 import CONFIG from '../../../config';
+import { CustomerNotificationService } from '../../services/CustomerNotificationService';
+import { EventCustomerNotification } from '../../entity/CustomerNotification';
+import { MessageSend, Firebase } from '../../util/firebase';
 
 
 @Controller("/admin/contract")
 @Docs("docs_admin")
 export class ContractController {
-    constructor() { }
+    constructor(
+        private customerNotificationService: CustomerNotificationService,
+    ) { }
 
 
     // =====================GET LIST=====================
@@ -121,9 +126,13 @@ export class ContractController {
         @Res() res: Response,
         @PathParams("contractId") contractId: number,
     ) {
-        const contract = await Contract.findOneOrThrowId(contractId)
+        const contract = await Contract.findOneOrThrowId(contractId, {
+            relations: ['customer']
+        })
         contract.isSent = true
         await contract.save()
+
+        this.customerNotificationService.sendContract(contract.customer)
 
         return res.sendOK(contract)
     }
@@ -198,9 +207,16 @@ export class ContractController {
         @Res() res: Response,
         @PathParams("contractId") contractId: number,
     ) {
-        let contract = await Contract.findOneOrThrowId(contractId)
+        let contract = await Contract.findOneOrThrowId(contractId, {
+            relations: ['customer']
+        })
         contract.isDeleted = true
         await contract.save()
+
+        if (contract.isSent) {
+            this.customerNotificationService.cancelContract(contract)
+        }
+
         return res.sendOK(contract)
     }
 
